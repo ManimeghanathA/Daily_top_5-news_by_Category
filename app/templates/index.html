@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>News Scheduler</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1 id="heading">📰 Get Your Daily News!</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Subscription Form -->
+    <form method="POST" id="news-form">
+      <label for="email">Email Address:</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="time">Preferred Delivery Time:</label>
+      <input type="time" id="time" name="time" required class="time-input">
+      <small>Select delivery time in 24-hour HH:MM format</small>
+
+      <label>Select up to 3 News Categories:</label>
+      <div class="categories">
+        <input type="checkbox" id="cat-technology" name="categories" value="technology">
+        <label for="cat-technology" class="category-oval">Technology</label>
+
+        <input type="checkbox" id="cat-sports" name="categories" value="sports">
+        <label for="cat-sports" class="category-oval">Sports</label>
+
+        <input type="checkbox" id="cat-business" name="categories" value="business">
+        <label for="cat-business" class="category-oval">Business</label>
+
+        <input type="checkbox" id="cat-science" name="categories" value="science">
+        <label for="cat-science" class="category-oval">Science</label>
+
+        <input type="checkbox" id="cat-health" name="categories" value="health">
+        <label for="cat-health" class="category-oval">Health</label>
+
+        <input type="checkbox" id="cat-entertainment" name="categories" value="entertainment">
+        <label for="cat-entertainment" class="category-oval">Entertainment</label>
+      </div>
+
+      <div id="selected-display">
+        Selected: <span id="selected-list">None</span>
+      </div>
+
+      <button type="submit" id="submit-btn">Subscribe</button>
+    </form>
+
+    <!-- Existing Subscriptions Table -->
+    {% if subscriptions %}
+      <h2>Your Subscriptions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Time</th>
+            <th>Categories</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for sub in subscriptions %}
+          <tr>
+            <td>{{ sub.email }}</td>
+            <td>{{ sub.time }}</td>
+            <td>{{ sub.categories | join(', ') }}</td>
+            <td>
+              <a href="{{ url_for('app.edit_subscription', user_id=sub.id) }}">Edit</a> |
+              <a href="{{ url_for('app.unsubscribe', user_id=sub.id) }}">Unsubscribe</a>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <!-- Category selection script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const maxSelect = 3;
+      const checkboxes = document.querySelectorAll('input[name="categories"]');
+      const selectedList = document.getElementById('selected-list');
+
+      function updateDisplay() {
+        const selected = Array.from(checkboxes)
+          .filter(ch => ch.checked)
+          .map(ch => ch.value);
+        selectedList.textContent = selected.length
+          ? selected.join(', ')
+          : 'None';
+      }
+
+      checkboxes.forEach(ch => {
+        ch.addEventListener('change', (e) => {
+          const count = document.querySelectorAll('input[name="categories"]:checked').length;
+          if (count > maxSelect) {
+            e.target.checked = false;
+            alert(`You can select up to ${maxSelect} categories.`);
+            return;
+          }
+          updateDisplay();
+        });
+      });
+
+      updateDisplay();
+    });
+  </script>
+</body>
+</html>

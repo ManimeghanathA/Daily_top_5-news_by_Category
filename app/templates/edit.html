@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Subscription</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Edit Subscription</h1>
+
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" id="edit-form">
+      <label>Email Address:</label>
+      <input type="email" name="email" value="{{ user.email }}" required>
+
+      <label>Preferred Delivery Time:</label>
+      <input type="time" name="time" value="{{ user.time }}" required>
+
+      <label>Select up to 3 News Categories:</label>
+      <div class="categories">
+        {% for cat in ['technology','sports','business','science','health','entertainment'] %}
+          <input type="checkbox" id="cat-{{ cat }}" name="categories" value="{{ cat }}"
+            {% if cat in user.categories %}checked{% endif %}>
+          <label for="cat-{{ cat }}" class="category-oval">{{ cat.title() }}</label>
+        {% endfor %}
+      </div>
+
+      <div class="button-wrapper">
+        <button type="submit" id="update">Update Subscription</button>
+        <a href="{{ url_for('app.index') }}" id="cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
