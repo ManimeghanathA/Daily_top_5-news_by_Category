@@ -1,6 +1,9 @@
 # database/db_handler.py
 
 import os, json, uuid
+import datetime
+from database.db_handler import load_users
+
 
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
 
@@ -41,3 +44,12 @@ def update_user(user_id, email, time_str, categories):
             u["categories"] = categories
             break
     save_users(users)
+
+def check_and_send():
+    now = datetime.datetime.utcnow().strftime("%H:%M")     # use UTC for consistency
+    users = load_users()
+    print(f"[Scheduler] UTC now={now} | loaded {len(users)} users: {users}")
+    for user in users:
+        if user.get("time") == now:
+            print(f"[Scheduler] Sending to {user['email']}")
+            send_news_email(user)
