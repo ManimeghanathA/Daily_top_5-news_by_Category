@@ -102,3 +102,13 @@ def debug_send_all():
     for u in users:
         send_news_email(u)
     return f"Attempted sending to {len(users)} users; check logs."
+
+
+
+@app.route("/_debug/db-files")
+def debug_db_files():
+    # List files in your database directory
+    db_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, "database")
+    files = os.listdir(db_dir)
+    return jsonify({"database_dir": db_dir, "files": files})
+
