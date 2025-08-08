@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database.db_handler import add_user, load_users, delete_user, update_user
 import os
 from scheduler.email_scheduler import send_news_email
+from flask import jsonify
 
 app = Blueprint('app', __name__)
 
@@ -103,4 +104,11 @@ def test_mail():
 
     send_news_email(user)
     return "Test mail attempted—check your inbox and the server logs."
+
+
+@app.route("/_debug/subscriptions")
+def debug_subscriptions():
+    users = load_users()
+    return jsonify(users)
+
 
