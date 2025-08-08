@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from app.routes import app as routes_blueprint
-from email_scheduler import start_scheduler
+from  scheduler.email_scheduler import start_scheduler
 from dotenv import load_dotenv
 
 load_dotenv()
