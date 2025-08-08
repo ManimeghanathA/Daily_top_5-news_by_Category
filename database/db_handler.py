@@ -5,8 +5,36 @@ import uuid
 import sqlite3
 from contextlib import closing
 
-# Path to the SQLite file, next to this script
-DB_PATH = os.path.join(os.path.dirname(__file__), "subscriptions.db")
+# database/db_handler.py
+
+import os, uuid, sqlite3
+from contextlib import closing
+
+# Compute project root = parent of this file's directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+DB_DIR       = os.path.join(PROJECT_ROOT, "database")
+DB_PATH      = os.path.join(DB_DIR, "subscriptions.db")
+
+def init_db():
+    # Make sure the database directory exists
+    os.makedirs(DB_DIR, exist_ok=True)
+    first_time = not os.path.exists(DB_PATH)
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                time TEXT NOT NULL,
+                categories TEXT NOT NULL
+            )
+        """)
+        conn.commit()
+    if first_time:
+        print(f"[db_handler] Created new SQLite DB at {DB_PATH}")
+
+# ... rest of your functions unchanged, just keep init_db() at top of each CRUD operation ...
+
 
 # Ensure the database and table exist
 def init_db():
