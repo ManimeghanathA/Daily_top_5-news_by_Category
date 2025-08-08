@@ -112,3 +112,13 @@ def debug_subscriptions():
     return jsonify(users)
 
 
+
+@app.route("/_debug/send-all")
+def debug_send_all():
+    users = load_users()
+    for u in users:
+        send_news_email(u)
+    return f"Attempted sending to {len(users)} users; check logs."
+
+
+
