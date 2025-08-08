@@ -2,6 +2,8 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from database.db_handler import add_user, load_users, delete_user, update_user
+import os
+from scheduler.email_scheduler import send_news_email
 
 app = Blueprint('app', __name__)
 
@@ -80,3 +82,25 @@ def edit_subscription(user_id):
 
     # GET → render edit form with `user` provided
     return render_template("edit.html", user=user)
+
+
+@app.route("/test-mail")
+def test_mail():
+    """
+    Manually trigger an email to verify SMTP in production.
+    """
+    # Use your own address or the MAIL_USER env var
+    test_email = os.getenv("MAIL_USER")
+    if not test_email:
+        return "MAIL_USER env var not set", 500
+
+    # A dummy user payload
+    user = {
+        "email": test_email,
+        "categories": ["technology","sports"],
+        "id": "test-id"
+    }
+
+    send_news_email(user)
+    return "Test mail attempted—check your inbox and the server logs."
+
