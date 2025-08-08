@@ -61,7 +61,7 @@ def delete_user(email):
     conn.commit()
     conn.close()
 
-def load_all_users():
+def load_users():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users')
@@ -70,10 +70,12 @@ def load_all_users():
     users = []
     for row in rows:
         users.append({
+            "id": row[0],  # Using email as ID
             "email": row[0],
             "time": row[1],
             "categories": row[2].split(','),
             "subscribed_at": row[3]
         })
     return users
+
 
