@@ -2,7 +2,6 @@
 
 import os, json, uuid
 import datetime
-from database.db_handler import load_users
 
 
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
