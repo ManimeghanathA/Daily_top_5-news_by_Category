@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 from app.routes import app as routes_blueprint
-from scheduler.email_scheduler import start_scheduler
+from email_scheduler import start_scheduler
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,4 +16,6 @@ if __name__ == "__main__":
     # Only start scheduler in the child process to avoid duplicates
     if os.getenv("WERKZEUG_RUN_MAIN") == "true":
         start_scheduler()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
+
