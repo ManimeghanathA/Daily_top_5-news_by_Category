@@ -13,9 +13,7 @@ app.secret_key = os.urandom(24)  # secure random key for session/flash
 app.register_blueprint(routes_blueprint)
 
 if __name__ == "__main__":
-    # Only start scheduler in the child process to avoid duplicates
-    if os.getenv("WERKZEUG_RUN_MAIN") == "true":
-        start_scheduler()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+            start_scheduler()
+            port = int(os.environ.get("PORT", 5000))
+            app.run(host='0.0.0.0', port=port, debug=True)
 
