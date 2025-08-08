@@ -1,104 +1,79 @@
-# database/db_handler.py
-
-import os
-import uuid
 import sqlite3
-from contextlib import closing
+import os
+from datetime import datetime
 
-# database/db_handler.py
-
-import os, uuid, sqlite3
-from contextlib import closing
-
-# Compute project root = parent of this file's directory
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-DB_DIR       = os.path.join(PROJECT_ROOT, "database")
-DB_PATH      = os.path.join(DB_DIR, "subscriptions.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), 'subscribed.db')
 
 def init_db():
-    # Make sure the database directory exists
-    os.makedirs(DB_DIR, exist_ok=True)
-    first_time = not os.path.exists(DB_PATH)
-    with closing(sqlite3.connect(DB_PATH)) as conn:
-        c = conn.cursor()
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS subscriptions (
-                id TEXT PRIMARY KEY,
-                email TEXT NOT NULL,
-                time TEXT NOT NULL,
-                categories TEXT NOT NULL
-            )
-        """)
-        conn.commit()
-    if first_time:
-        print(f"[db_handler] Created new SQLite DB at {DB_PATH}")
-
-# ... rest of your functions unchanged, just keep init_db() at top of each CRUD operation ...
-
-
-# Ensure the database and table exist
-def init_db():
-    with closing(sqlite3.connect(DB_PATH)) as conn:
-        c = conn.cursor()
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS subscriptions (
-                id TEXT PRIMARY KEY,
-                email TEXT NOT NULL,
-                time TEXT NOT NULL,
-                categories TEXT NOT NULL -- stored as comma-separated string
-            )
-        """)
-        conn.commit()
-
-# Convert a DB row to a user dict
-def row_to_user(row):
-    return {
-        "id": row[0],
-        "email": row[1],
-        "time": row[2],
-        "categories": row[3].split(",") if row[3] else []
-    }
-
-# Load all users
-def load_users():
-    init_db()
-    with closing(sqlite3.connect(DB_PATH)) as conn:
-        c = conn.cursor()
-        c.execute("SELECT id, email, time, categories FROM subscriptions")
-        rows = c.fetchall()
-    return [row_to_user(r) for r in rows]
-
-# Add a new user
-def add_user(email, time_str, categories):
-    init_db()
-    user_id = str(uuid.uuid4())
-    cats = ",".join(categories)
-    with closing(sqlite3.connect(DB_PATH)) as conn:
-        c = conn.cursor()
-        c.execute(
-            "INSERT INTO subscriptions (id, email, time, categories) VALUES (?, ?, ?, ?)",
-            (user_id, email, time_str, cats)
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            email TEXT PRIMARY KEY,
+            time TEXT,
+            categories TEXT,
+            subscribed_at TEXT
         )
-        conn.commit()
-    return user_id
+    ''')
+    conn.commit()
+    conn.close()
 
-# Delete a user by id
-def delete_user(user_id):
-    init_db()
-    with closing(sqlite3.connect(DB_PATH)) as conn:
-        c = conn.cursor()
-        c.execute("DELETE FROM subscriptions WHERE id = ?", (user_id,))
-        conn.commit()
+def add_user(email, time, categories):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    subscribed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute('''
+        INSERT OR REPLACE INTO users (email, time, categories, subscribed_at)
+        VALUES (?, ?, ?, ?)
+    ''', (email, time, ','.join(categories), subscribed_at))
+    conn.commit()
+    conn.close()
 
-# Update an existing user
-def update_user(user_id, email, time_str, categories):
-    init_db()
-    cats = ",".join(categories)
-    with closing(sqlite3.connect(DB_PATH)) as conn:
-        c = conn.cursor()
-        c.execute("""
-            UPDATE subscriptions
-            SET email = ?, time = ?, categories = ?
-            WHERE id = ?
-        """, (email, time_str, cats, user_id))
-        conn.commit()
+def get_user(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {
+            "email": row[0],
+            "time": row[1],
+            "categories": row[2].split(','),
+            "subscribed_at": row[3]
+        }
+    return None
+
+def update_user(email, new_time, new_categories):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE users SET time = ?, categories = ?
+        WHERE email = ?
+    ''', (new_time, ','.join(new_categories), email))
+    conn.commit()
+    conn.close()
+
+def delete_user(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM users WHERE email = ?', (email,))
+    conn.commit()
+    conn.close()
+
+def load_all_users():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users')
+    rows = cursor.fetchall()
+    conn.close()
+    users = []
+    for row in rows:
+        users.append({
+            "email": row[0],
+            "time": row[1],
+            "categories": row[2].split(','),
+            "subscribed_at": row[3]
+        })
+    return users
+
